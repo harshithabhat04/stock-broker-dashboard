@@ -53,5 +53,8 @@ stock-dashboard/
 ├─ server.js            # Express + Socket.IO backend
 ├─ package.json         # NPM dependencies and scripts
 └─ .gitignore           # Ignore node_modules and other local files
+```
+guhghjgh
+
 
   bhjjjjjjjjjjjj#hihhjk3n
