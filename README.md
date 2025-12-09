@@ -74,8 +74,8 @@ npm install
 # Run the app
 npm start
 
-Then open your browser and go to:
+# Then open your browser and go to:
 http://localhost:3000
-
+```
 To test multi-user behaviour, open the same URL in two different tabs/windows, log in with different emails, and subscribe to different stocks.
 
