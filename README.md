@@ -4,6 +4,9 @@ A simple stock broker client web dashboard that demonstrates **real-time communi
 
 The app allows a user to log in with an email, subscribe to supported stock tickers, and view their prices updating every second without refreshing the page. Prices are simulated using a random number generator.
 
+## Live Demo
+https://stock-broker-client-dashboard.onrender.com/
+
 ## Key Features
 
 - **Email login**
@@ -65,8 +68,8 @@ stock-dashboard/
 
 ```bash
 # clone the repository
-git clone https://github.com/<your-username>/<your-repo-name>.git
-cd <your-repo-name>
+git clone https://github.com/harshithabhat04/stock-broker-dashboard.git
+cd stock-broker-dashboard
 
 # install dependencies
 npm install
