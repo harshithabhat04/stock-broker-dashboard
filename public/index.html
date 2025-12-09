@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Stock Broker Client Dashboard</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 45%, #020617 100%);
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-size: 30px;
+    }
+
+    .app-shell {
+  width: 100%;
+  max-width: 1200px;      /* wider */
+  background: #f9fafb;
+  border-radius: 18px;
+  box-shadow:
+    0 20px 25px -5px rgba(15, 23, 42, 0.25),
+    0 8px 10px -6px rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+
+  min-height: 30vh;       
+  display: flex;
+  flex-direction: column;
+}
+
+
+    header {
+      background: linear-gradient(to right, #0f172a, #1d4ed8);
+      color: #e5e7eb;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 26px;
+      font-weight: 600;
+    }
+
+    header span.tagline {
+      font-size: 20px;
+      opacity: 0.9;
+    }
+
+   main {
+  padding: 20px 24px 22px;
+  flex: 1;   
+}
+
+    .hidden {
+      display: none;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      border: 1px solid #e5e7eb;
+      padding: 18px 20px;
+      box-shadow: 0 4px 6px -3px rgba(15, 23, 42, 0.1);
+      margin-bottom: 16px;
+    }
+
+    .card h3 {
+      margin-bottom: 8px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .muted {
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    input[type="email"] {
+      width: 100%;
+      max-width: 320px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input[type="email"]:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px #2563eb33;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: none;
+      background: #2563eb;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .user-info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .user-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+
+    /* stock selection chips */
+    #stockOptions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    #stockOptions label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: #f3f4f6;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease,
+        transform 0.1s ease;
+    }
+
+    #stockOptions input[type="checkbox"] {
+      accent-color: #2563eb;
+    }
+
+    #stockOptions label:hover {
+      background: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 16px;
+    }
+
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
+      color: #4b5563;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td.ticker-cell {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    td.price-cell {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: #111827;
+      font-weight: 600;
+    }
+
+    td.change-cell {
+  text-align: right;
+  font-size: 13px;
+}
+
+.change-pos {
+  color: #16a34a;  
+}
+
+.change-neg {
+  color: #dc2626;  
+}
+
+
+    .empty-state {
+      text-align: center;
+      padding: 14px 10px;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    .highlight {
+      animation: flash 0.5s ease-out;
+    }
+
+    @keyframes flash {
+      from {
+        background-color: #dcfce7;
+      }
+      to {
+        background-color: transparent;
+      }
+    }
+
+    footer {
+      padding: 10px 20px 14px;
+      border-top: 1px solid #e5e7eb;
+      background: #f3f4f6;
+      font-size: 12px;
+      color: #6b7280;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    footer span strong {
+      color: #111827;
+    }
+
+    @media (max-width: 640px) {
+      main {
+        padding: 16px;
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div>
+        <h1>Stock Broker Client Web Dashboard</h1>
+        <span class="tagline">Real-time simulated stock prices over WebSockets</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- LOGIN -->
+      <div id="loginSection" class="card">
+        <h3>Login</h3>
+        <p class="muted">Enter your email to start using the dashboard.</p>
+        <div style="margin-top: 10px;">
+          <input type="email" id="emailInput" placeholder="you@example.com" />
+          <button id="loginBtn">Continue</button>
+        </div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div id="dashboard" class="hidden">
+        <div class="card" style="margin-bottom: 12px;">
+          <div class="user-info-row">
+            <div>
+              <h3>Subscribed Stocks</h3>
+              <p class="muted">
+                Choose from the supported tickers and watch prices update every second.
+              </p>
+            </div>
+            <div class="user-pill">
+              <span class="status-dot"></span>
+              <span id="userEmail"></span>
+            </div>
+          </div>
+
+          <div>
+            <span class="muted">Supported tickers:</span>
+            <div id="stockOptions">
+              <label><input type="checkbox" value="GOOG" /> GOOG</label>
+              <label><input type="checkbox" value="TSLA" /> TSLA</label>
+              <label><input type="checkbox" value="AMZN" /> AMZN</label>
+              <label><input type="checkbox" value="META" /> META</label>
+              <label><input type="checkbox" value="NVDA" /> NVDA</label>
+            </div>
+            <button id="subscribeBtn">Update Subscription</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Your Subscribed Stocks</h3>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40%;">Ticker</th>
+                <th style="width: 60%; text-align: right;">Price (USD)</th>
+                 <th style="width: 25%; text-align: right;">Change</th>
+              </tr>
+            </thead>
+            <tbody id="stockBody">
+              <tr id="emptyRow">
+                <td colspan="2" class="empty-state">
+                  No stocks selected yet. Choose tickers above and click
+                  <strong>Update Subscription</strong>.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <span>Live data source: <strong>Random price generator</strong></span>
+      
+    </footer>
+  </div>
+
+  <script>
+    const socket = io();
+
+    const loginSection = document.getElementById("loginSection");
+    const dashboard = document.getElementById("dashboard");
+    const emailInput = document.getElementById("emailInput");
+    const loginBtn = document.getElementById("loginBtn");
+    const userEmailSpan = document.getElementById("userEmail");
+    const subscribeBtn = document.getElementById("subscribeBtn");
+    const stockBody = document.getElementById("stockBody");
+    const emptyRow = document.getElementById("emptyRow");
+
+    let subscribedTickers = [];
+    const lastPrices = {};
+
+    // LOGIN
+    loginBtn.onclick = () => {
+      const email = emailInput.value.trim();
+      if (!email) {
+        alert("Please enter an email");
+        return;
+      }
+      socket.emit("login", email);
+      userEmailSpan.textContent = email;
+      loginSection.classList.add("hidden");
+      dashboard.classList.remove("hidden");
+    };
+
+    // SUBSCRIBE
+    subscribeBtn.onclick = () => {
+      const checkboxes = document.querySelectorAll(
+        "#stockOptions input[type=checkbox]"
+      );
+      subscribedTickers = [];
+      checkboxes.forEach((cb) => {
+        if (cb.checked) subscribedTickers.push(cb.value);
+      });
+
+      if (subscribedTickers.length === 0) {
+        alert("Select at least one stock");
+        return;
+      }
+
+      socket.emit("subscribe", subscribedTickers);
+      renderTableRows();
+    };
+
+    function renderTableRows() {
+      stockBody.innerHTML = "";
+      if (subscribedTickers.length === 0) {
+        stockBody.appendChild(emptyRow);
+        return;
+      }
+
+      subscribedTickers.forEach((ticker) => {
+        const tr = document.createElement("tr");
+        tr.id = `row-${ticker}`;
+
+        const tdTicker = document.createElement("td");
+        tdTicker.textContent = ticker;
+        tdTicker.className = "ticker-cell";
+
+        const tdPrice = document.createElement("td");
+        tdPrice.id = `price-${ticker}`;
+        tdPrice.textContent = "-";
+        tdPrice.className = "price-cell";
+
+        const tdChange = document.createElement("td");
+        tdChange.id = `change-${ticker}`;
+        tdChange.textContent = "0.00%";
+        tdChange.className = "change-cell";
+
+        tr.appendChild(tdTicker);
+        tr.appendChild(tdPrice);
+        tr.appendChild(tdChange);
+        stockBody.appendChild(tr);
+      });
+    }
+
+    // PRICE UPDATES
+    socket.on("priceUpdate", (prices) => {
+  subscribedTickers.forEach((ticker) => {
+    const cell = document.getElementById(`price-${ticker}`);
+    if (cell && prices[ticker] !== undefined) {
+      const newPrice = prices[ticker];
+      const newText = newPrice.toFixed(2);
+
+      const oldPrice = lastPrices[ticker];
+      lastPrices[ticker] = newPrice;
+
+      if (cell.textContent !== newText) {
+        cell.textContent = newText;
+
+        
+        cell.classList.remove("highlight");
+        void cell.offsetWidth;
+        cell.classList.add("highlight");
+      }
+
+      
+      if (oldPrice !== undefined) {
+        const diff = newPrice - oldPrice;
+        const pct = (diff / oldPrice) * 100;
+        const changeCell = document.getElementById(`change-${ticker}`);
+        if (changeCell) {
+          changeCell.textContent =
+            (diff >= 0 ? "+" : "") + pct.toFixed(2) + "%";
+
+          changeCell.classList.remove("change-pos", "change-neg");
+          changeCell.classList.add(diff >= 0 ? "change-pos" : "change-neg");
+        }
+      }
+    }
+  });
+
+  
+  const now = new Date();
+  const last = document.getElementById("lastUpdated");
+  if (last) {
+    last.textContent =
+      "Last updated: " + now.toLocaleTimeString();
+  }
+});
+
+  </script>
+</body>
+</html>
