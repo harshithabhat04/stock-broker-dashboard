@@ -19,7 +19,7 @@ The app allows a user to log in with an email, subscribe to supported stock tick
   - Prices are pushed to all connected clients using **Socket.IO** (WebSockets).
   - UI updates instantly on the dashboard **without any page refresh**.
   - The current price is shown in **bold**, and the price cell briefly highlights when the value changes, so you can visually see the numbers changing in real time.
-  - (Optional extension, if implemented) A separate **Change %** column shows the percentage movement since the last update, with green for positive change and red for negative.
+  - A separate **Change %** column shows the percentage movement since the last update, with green for positive change and red for negative.
 
 - **Multi-user support**
   - Multiple users can open the app at the same time (different browser tabs/windows).
