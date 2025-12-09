@@ -53,3 +53,25 @@ stock-dashboard/
 ├─ server.js            # Express + Socket.IO backend
 ├─ package.json         # NPM dependencies and scripts
 └─ .gitignore           # Ignore node_modules and other local files
+
+## Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) installed (LTS version recommended).
+
+### Installation
+
+```bash
+# clone the repository
+git clone https://github.com/<your-username>/<your-repo-name>.git
+cd <your-repo-name>
+
+# install dependencies
+npm install
+
+# Run the app
+npm start
+
+Then open your browser and go to:
+http://localhost:3000
